@@ -35,6 +35,7 @@ const SECTIONS = [
         { type: 'select', key: 'blend', label: 'blend', options: BLENDS, def: 0 },
         { key: 'layerMix', label: 'layer mix', min: 0, max: 1, step: 0.01, def: 0.6 },
     ]},
+    { id: 'audio', title: 'Áudio', open: false, audio: true },
 ];
 
 const DEFAULT_PALETTE = ['#ffffff', '#c04000', '#e8140a', '#a000a0', '#4b0082'];
@@ -48,6 +49,7 @@ const rows = []; // { el, showIf }
 function resetState() {
     ITEMS.forEach(it => state.params[it.key] = it.def);
     state.palette = [...DEFAULT_PALETTE];
+    resetAudioCfg();
 }
 resetState();
 
@@ -101,7 +103,8 @@ addEventListener('resize', resize); resize();
 let time = 0, last = performance.now();
 function frame(now) {
     const dt = (now - last) / 1000; last = now;
-    const P = state.params;
+    audioTick(now);
+    const P = applyAudio(state.params);
     time += dt * P.speed;
     gl.uniform2f(u.res, canvas.width, canvas.height);
     gl.uniform1f(u.time, time);
@@ -140,8 +143,8 @@ function updateVisibility() {
     rows.forEach(r => r.el.hidden = r.showIf ? !r.showIf(state.params) : false);
 }
 
-function buildSlider(it) {
-    const { key, label, min, max, step } = it;
+// Linha de slider genérica: barra arrastável + campo numérico. onSet recebe o valor já ajustado.
+function sliderRow(label, min, max, step, value, onSet) {
     const row = document.createElement('div'); row.className = 'row';
     row.innerHTML = `<label title="${label}">${label}</label><div class="bar"><i></i></div>
         <input type="number" min="${min}" max="${max}" step="${step}">`;
@@ -150,7 +153,7 @@ function buildSlider(it) {
     const set = v => {
         v = Math.min(max, Math.max(min, +v));
         v = +(Math.round(v / step) * step).toFixed(dec);
-        state.params[key] = v;
+        onSet(v);
         fill.style.width = ((v - min) / (max - min) * 100) + '%';
         num.value = v;
     };
@@ -165,8 +168,14 @@ function buildSlider(it) {
         bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up);
     });
     num.addEventListener('input', () => { if (num.value !== '') set(num.value); });
+    set(value);
+    return { row, set };
+}
+
+function buildSlider(it) {
+    const { key, label, min, max, step } = it;
+    const { row, set } = sliderRow(label, min, max, step, state.params[key], v => { state.params[key] = v; });
     ui[key] = { set };
-    set(state.params[key]);
     return row;
 }
 
@@ -245,6 +254,7 @@ const ICONS = {
     palette: svg('<path d="M12 3a9 9 0 100 18c1.6 0 2.2-1.1 1.7-2.3-.5-1.2.3-2.2 1.6-2.2H17a4 4 0 004-4c0-5-4-9.5-9-9.5z"/><path d="M7.5 11h.01M10 7.5h.01M15 7.5h.01" stroke-width="3"/>'),
     mode:    svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><path d="M12 3.5v-1M12 21.5v-1"/>'),
     blend:   svg('<circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/>'),
+    audio:   svg('<path d="M5 19v-6M10 19V5M15 19V10M20 19V8"/>'),
 };
 const dock = document.getElementById('dock');
 const openIds = new Set(); // grupos abertos
@@ -285,6 +295,7 @@ function buildPanel() {
         head.querySelector('button').onclick = () => toggleGroup(sec.id);
         const body = document.createElement('div'); body.className = 'sec-body';
         if (sec.palette) buildPaletteBody(body);
+        if (sec.audio) buildAudioBody(body);
         (sec.items || []).forEach(it => {
             const el = it.type === 'segment' ? buildSegment(it)
                      : it.type === 'select' ? buildSelect(it)

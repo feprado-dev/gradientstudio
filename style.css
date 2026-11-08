@@ -112,3 +112,32 @@ canvas#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block
 @media (max-width: 600px) {
   #panel { left: 8px; right: 8px; top: 72px; max-height: none; overflow-x: auto; }
 }
+
+/* áudio-reativo */
+.astatus { padding: 8px 6px 2px; color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.abtns { display: flex; flex-wrap: wrap; gap: 1px; margin: 6px; }
+.abtns button, .aplayer button { flex: 1 0 45%; padding: 6px; border: 0; background: var(--row-bg); color: #aaa; font: inherit; cursor: pointer; }
+.abtns button:hover, .aplayer button:hover { color: #fff; }
+.abtns button.on { background: var(--accent); color: #fff; }
+.adevices { display: block; width: calc(100% - 12px); margin: 0 6px 6px; height: 20px; background: var(--row-bg);
+  color: var(--accent); border: 0; font: inherit; font-size: 10px; }
+.aplayer { display: flex; align-items: center; gap: 6px; margin: 0 6px 6px; }
+.aplayer button { flex: none; width: 28px; }
+.aplayer input[type=range] { flex: 1; accent-color: var(--accent); }
+.meters { padding: 6px 6px 4px; border-top: 1px solid #111; }
+.meter { display: flex; align-items: center; gap: 6px; height: 14px; }
+.meter span { width: 44px; font-size: 9.5px; color: #aaa; }
+.mbar { flex: 1; height: 7px; background: var(--row-bg); }
+.mbar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.route { border-bottom: 1px solid #111; padding: 4px 0 0; }
+.route-top { display: flex; align-items: center; gap: 4px; padding: 0 6px 4px; }
+.route-top select { flex: 1; min-width: 0; height: 18px; background: var(--row-bg); color: var(--accent); border: 0; font: inherit; font-size: 10px; }
+.route-top span { color: var(--muted); }
+.route-top button { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; }
+.route-top button:hover { color: #fff; }
+.route .row { border-bottom: 0; }
+
+[hidden] { display: none !important; }
+.ahint { margin: 0 6px 6px; padding: 6px; background: #151515; color: #9a9a9a; font-size: 9.5px; line-height: 1.45; }
+.ahint b { color: #c8c8c8; font-weight: 600; }
+.ahint i { color: var(--accent); font-style: normal; }
